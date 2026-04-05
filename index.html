@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quản lý phòng trọ BUSINESS</title>
+
+<style>
+body{font-family:Arial;background:#0f172a;color:#fff;margin:0;padding:10px;}
+h2{text-align:center;}
+.room{background:#1e293b;margin-bottom:12px;padding:12px;border-radius:12px;}
+.room.paid{background:#065f46;}
+input{width:80px;padding:6px;margin:4px;border-radius:6px;border:none;}
+.name{width:150px;}
+.result{margin-top:6px;color:#00ffcc;font-weight:bold;}
+.status{font-size:13px;margin-top:4px;}
+.unpaid{color:#f87171;}
+.paidText{color:#4ade80;}
+button{padding:6px 10px;border:none;border-radius:6px;margin-top:5px;margin-right:5px;}
+.calc{background:#22c55e;color:#fff;}
+.paidBtn{background:#3b82f6;color:#fff;}
+.print{background:#f59e0b;color:#fff;}
+.total{background:#111827;padding:10px;border-radius:10px;margin-bottom:10px;text-align:center;font-size:18px;}
+select{padding:8px;border-radius:8px;margin-bottom:10px;width:100%;}
+</style>
+</head>
+
+<body>
+
+<h2>🏠 QUẢN LÝ PHÒNG TRỌ BUSINESS</h2>
+
+<select id="monthSelect" onchange="changeMonth()"></select>
+
+<div class="total" id="totalAll">Tổng: 0đ</div>
+
+<div id="rooms"></div>
+
+<script>
+const roomsContainer = document.getElementById("rooms");
+const monthSelect = document.getElementById("monthSelect");
+
+// tháng
+function initMonths(){
+    let now = new Date();
+    for(let i=0;i<12;i++){
+        let d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+        let m = ("0"+(d.getMonth()+1)).slice(-2);
+        let y = d.getFullYear();
+        let val = m+"/"+y;
+        monthSelect.innerHTML += `<option value="${val}">${val}</option>`;
+    }
+}
+initMonths();
+
+function getKey(){ return "tro_"+monthSelect.value; }
+
+function save(){ localStorage.setItem(getKey(), JSON.stringify(data)); }
+function load(){ return JSON.parse(localStorage.getItem(getKey())||"{}"); }
+
+let data = load();
+
+function getNow(){ return new Date().toLocaleString("vi-VN"); }
+
+// render
+function render(){
+    roomsContainer.innerHTML = "";
+
+    for(let i=1;i<=7;i++){
+        let price = (i===7)?900000:1000000;
+        let room = data[i] || {};
+
+        roomsContainer.innerHTML += `
+        <div class="room ${room.paid?'paid':''}">
+            <b>Phòng ${i}</b><br>
+
+            👤 <input class="name" placeholder="Tên người thuê" 
+            value="${room.name||''}" 
+            onchange="saveName(${i},this.value)"><br>
+
+            💡 Điện:
+            <input id="e_old_${i}" value="${room.e_old||room.prev_e||''}">
+            <input id="e_new_${i}" placeholder="mới"><br>
+
+            🚿 Nước:
+            <input id="w_old_${i}" value="${room.w_old||room.prev_w||''}">
+            <input id="w_new_${i}" placeholder="mới"><br>
+
+            <button class="calc" onclick="calc(${i})">Tính</button>
+            <button class="paidBtn" onclick="togglePaid(${i})">Đã thu</button>
+            <button class="print" onclick="printBill(${i})">In hóa đơn</button>
+
+            <div class="result">${room.result||'---'}</div>
+
+            <div class="status ${room.paid?'paidText':'unpaid'}">
+                ${room.paid? '✔ Đã thu '+room.date : '❌ Chưa thu'}
+            </div>
+        </div>
+        `;
+    }
+
+    updateTotal();
+}
+
+function saveName(i,name){
+    data[i] = {...data[i], name};
+    save();
+}
+
+function calc(i){
+    let price = (i===7)?900000:1000000;
+
+    let e_old = +document.getElementById(`e_old_${i}`).value || 0;
+    let e_new = +document.getElementById(`e_new_${i}`).value || 0;
+    let w_old = +document.getElementById(`w_old_${i}`).value || 0;
+    let w_new = +document.getElementById(`w_new_${i}`).value || 0;
+
+    let electric = (e_new - e_old) * 5000;
+    let water = (w_new - w_old) * 10000;
+    let total = price + electric + water;
+
+    let text = `Phòng: ${price.toLocaleString()}đ | Điện: ${electric.toLocaleString()}đ | Nước: ${water.toLocaleString()}đ 👉 Tổng: ${total.toLocaleString()}đ`;
+
+    data[i] = {
+        ...data[i],
+        e_old,w_old,
+        prev_e:e_new,
+        prev_w:w_new,
+        result:text,
+        total
+    };
+
+    save();
+    render();
+}
+
+function togglePaid(i){
+    if(!data[i]) return;
+
+    data[i].paid = !data[i].paid;
+    data[i].date = data[i].paid ? getNow() : "";
+
+    save();
+    render();
+}
+
+// in hóa đơn
+function printBill(i){
+    let room = data[i];
+    if(!room) return alert("Chưa có dữ liệu");
+
+    let win = window.open("","","width=400,height=600");
+    win.document.write(`
+    <h3>HÓA ĐƠN PHÒNG ${i}</h3>
+    <p>Người thuê: ${room.name||''}</p>
+    <p>${room.result}</p>
+    <p>Ngày: ${room.date||''}</p>
+    `);
+    win.print();
+}
+
+function updateTotal(){
+    let sum = 0;
+    for(let i in data){
+        if(data[i].total) sum += data[i].total;
+    }
+    document.getElementById("totalAll").innerText =
+        "Tổng: " + sum.toLocaleString() + "đ";
+}
+
+function changeMonth(){
+    data = load();
+    render();
+}
+
+render();
+</script>
+
+</body>
+</html>
