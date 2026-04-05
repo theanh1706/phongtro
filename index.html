@@ -2,7 +2,6 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0f172a">
@@ -150,13 +149,13 @@ function render(){
     let r=getRoom(i);
     let p=getPrev(i);
 
-    let oldE = p.next_e ?? r.e_old ?? 0;
-    let oldW = p.next_w ?? r.w_old ?? 0;
+    let oldE = p.next_e ?? r.e_old ?? '';
+    let oldW = p.next_w ?? r.w_old ?? '';
 
-    let paid = r.paid||0;
-    let oldDebt = r.oldDebt||0;
-    let deposit = r.deposit||0;
-    let totalDebt = r.total ? (r.total + oldDebt - paid) : 0;
+    let paid = r.paid||'';
+    let oldDebt = r.oldDebt||'';
+    let deposit = r.deposit||'';
+    let totalDebt = r.total ? (r.total + (r.oldDebt||0) - (r.paid||0)) : 0;
 
     if(r.total) totalMoney+=r.total;
     if(totalDebt>0) unpaidCount++;
@@ -182,18 +181,18 @@ function render(){
       </div>
 
       <div class="content">
-        <input class="name" value="${r.name||""}" onchange="setName(${i},this.value)"><br>
+        <input class="name" value="${r.name||""}" onchange="setName(${i},this.value)" placeholder="Tên khách"><br>
 
-        ⚡ <input type="number" class="electric" id="eo${i}" value="${oldE}">
-        <input type="number" class="electric" id="en${i}" value="${r.next_e||""}"><br>
+        ⚡ <input type="number" class="electric" id="eo${i}" value="${r.e_old||''}" placeholder="Điện cũ" title="Điện cũ">
+        <input type="number" class="electric" id="en${i}" value="${r.next_e||''}" placeholder="Điện mới" title="Điện mới"><br>
 
-        🚿 <input type="number" class="water" id="wo${i}" value="${oldW}">
-        <input type="number" class="water" id="wn${i}" value="${r.next_w||""}"><br>
+        🚿 <input type="number" class="water" id="wo${i}" value="${r.w_old||''}" placeholder="Nước cũ" title="Nước cũ">
+        <input type="number" class="water" id="wn${i}" value="${r.next_w||''}" placeholder="Nước mới" title="Nước mới"><br>
 
-        💰 <input type="number" class="money" id="paid${i}" placeholder="đã trả" value="${paid}">
-        🔥 <input type="number" class="debtold" id="oldDebt${i}" placeholder="nợ cũ" value="${oldDebt}">
-        🏦 <input type="number" class="deposit" id="deposit${i}" placeholder="tiền cọc" value="${deposit}">
-        📅 <input type="number" class="dueday" id="due${i}" placeholder="ngày thu" value="${r.due||""}"><br>
+        💰 <input type="number" class="money" id="paid${i}" value="${r.paid||''}" placeholder="Đã trả" title="Số tiền đã trả">
+        🔥 <input type="number" class="debtold" id="oldDebt${i}" value="${r.oldDebt||''}" placeholder="Nợ cũ" title="Nợ cũ">
+        🏦 <input type="number" class="deposit" id="deposit${i}" value="${r.deposit||''}" placeholder="Tiền cọc" title="Tiền cọc">
+        📅 <input type="number" class="dueday" id="due${i}" value="${r.due||''}" placeholder="Ngày thu" title="Ngày thu"><br>
 
         <div style="margin-top:6px;">
           ❗ Tổng nợ:
@@ -286,41 +285,25 @@ function bill(i){
   let total=roomPrice+e_money+w_money;
   let finalDebt=total+oldDebt-paid;
 
-  let html=`
-  <html><head><title>Hóa đơn</title>
-  <style>
-  body{font-family:Arial;padding:20px}
-  h2{text-align:center}
-  table{width:100%;border-collapse:collapse}
-  td{padding:6px;border-bottom:1px solid #ccc}
-  .r{text-align:right}
-  .b{font-weight:bold}
-  </style></head>
-  <body>
-
+  let html=`<html><head><title>Hóa đơn</title>
+  <style>body{font-family:Arial;padding:20px}h2{text-align:center}table{width:100%;border-collapse:collapse}td{padding:6px;border-bottom:1px solid #ccc}.r{text-align:right}.b{font-weight:bold}</style>
+  </head><body>
   <h2>HÓA ĐƠN PHÒNG ${i}</h2>
-
   <table>
   <tr><td>Khách</td><td class="r">${r.name||""}</td></tr>
-
   <tr><td>Điện cũ</td><td class="r">${e_old}</td></tr>
   <tr><td>Điện mới</td><td class="r">${e_new}</td></tr>
   <tr><td>Sử dụng</td><td class="r">${e_use}</td></tr>
   <tr><td>Tiền điện</td><td class="r">${e_money.toLocaleString()}đ</td></tr>
-
   <tr><td>Nước cũ</td><td class="r">${w_old}</td></tr>
   <tr><td>Nước mới</td><td class="r">${w_new}</td></tr>
   <tr><td>Sử dụng</td><td class="r">${w_use}</td></tr>
   <tr><td>Tiền nước</td><td class="r">${w_money.toLocaleString()}đ</td></tr>
-
   <tr><td>Tiền phòng</td><td class="r">${roomPrice.toLocaleString()}đ</td></tr>
   <tr><td>Nợ cũ</td><td class="r">${oldDebt.toLocaleString()}đ</td></tr>
   <tr><td>Đã trả</td><td class="r">${paid.toLocaleString()}đ</td></tr>
-
   <tr class="b"><td>TỔNG PHẢI TRẢ</td><td class="r">${finalDebt.toLocaleString()}đ</td></tr>
-  </table>
-
-  </body></html>`;
+  </table></body></html>`;
 
   let w=window.open("");
   w.document.write(html);
