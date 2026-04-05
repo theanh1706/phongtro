@@ -1,6 +1,6 @@
 {
-  "name": "Quản lý phòng trọ",
-  "short_name": "Phòng trọ",
+  "name": "PHÒNG TRỌ SÓI",
+  "short_name": "SÓI",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0f172a",
