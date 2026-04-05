@@ -3,16 +3,14 @@
 <head>
 <meta charset="UTF-8">
 
-<!-- 🔥 FIX APP PHONE -->
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0f172a">
-
 <link rel="apple-touch-icon" href="icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-<title>QL Trọ PRO</title>
+<title>QL Trọ PRO MAX</title>
 
 <style>
 :root{
@@ -23,67 +21,47 @@
   --text:#e2e8f0;
   --sub:#94a3b8;
 
-  --electric:#facc15;
-  --water:#38bdf8;
-  --money:#c084fc;
-
   --green:#22c55e;
   --yellow:#f59e0b;
-  --red:#ef4444;
-  --blue:#3b82f6;
+  --gray:#64748b;
 }
 
 body{font-family:system-ui;background:var(--bg);color:var(--text);padding:12px;}
 h2{text-align:center;}
 
-select{
-  width:100%;padding:12px;border-radius:12px;border:none;
-  background:var(--card);color:#fff;margin-bottom:12px;
-}
+select{width:100%;padding:12px;border-radius:12px;border:none;background:var(--card);color:#fff;margin-bottom:12px;}
 
-.top{
-  display:grid;grid-template-columns:1fr 1fr;
-  gap:10px;margin-bottom:12px;
-}
-
+.top{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
 .box{background:var(--card);border-radius:16px;padding:14px;text-align:center;}
 
 .room{background:var(--card);border-radius:18px;margin-bottom:12px;overflow:hidden;}
 
-.header{
-  display:flex;justify-content:space-between;
-  padding:14px;cursor:pointer;
-}
+.header{display:flex;justify-content:space-between;padding:14px;cursor:pointer;}
 
-.content{
-  max-height:0;overflow:hidden;transition:0.3s;
-  background:var(--content);
-}
-.room.open .content{max-height:700px;padding:12px;}
+.header.done{background:rgba(34,197,94,0.15);}
+.header.unpaid{background:rgba(245,158,11,0.15);}
+.header.empty{background:rgba(100,116,139,0.15);}
 
-input{
-  width:80px;padding:10px;margin:5px;
-  border-radius:10px;border:none;color:#fff;
-}
+.content{max-height:0;overflow:hidden;transition:0.3s;background:var(--content);}
+.room.open .content{max-height:800px;padding:12px;}
 
+input{width:80px;padding:10px;margin:5px;border-radius:10px;border:none;color:#fff;}
 .name{width:150px;background:var(--input);}
 .electric{background:#78350f;}
 .water{background:#0c4a6e;}
 .money{background:#312e81;}
 .debtold{background:#7f1d1d;}
 .deposit{background:#065f46;}
+.dueday{background:#d97706;}
 
-button{
-  width:100%;margin-top:6px;padding:12px;
-  border:none;border-radius:12px;font-weight:600;color:#fff;
-}
-
+button{width:100%;margin-top:6px;padding:12px;border:none;border-radius:12px;font-weight:600;color:#fff;}
 .calc{background:#16a34a;}
 .paid{background:#2563eb;}
+.fullpaid{background:#22c55e;}
 .print{background:#9333ea;}
 .clear{background:#dc2626;}
 
-.status{font-size:12px;margin-top:4px;}
+.status{font-size:12px;margin-top:4px;font-weight:600;}
 .done{color:#4ade80;}
 .unpaid{color:#fbbf24;}
 .empty{color:#94a3b8;}
@@ -92,7 +70,7 @@ button{
 
 <body>
 
-<h2>🏠 QUẢN LÝ TRỌ</h2>
+<h2>🏠 SÓI GHẺ</h2>
 
 <select id="month"></select>
 
@@ -112,7 +90,6 @@ button{
 <script>
 let m = localStorage.getItem("m") || new Date().getMonth()+1;
 let data = JSON.parse(localStorage.getItem("tro")||"{}");
-
 let openRoom = null;
 
 const monthEl = document.getElementById("month");
@@ -170,36 +147,36 @@ function render(){
 
   for(let i=1;i<=7;i++){
     auto(i);
-
     let r=getRoom(i);
     let p=getPrev(i);
 
     let oldE = p.next_e ?? r.e_old ?? 0;
     let oldW = p.next_w ?? r.w_old ?? 0;
 
-    let currentDebt = r.total ? (r.total - (r.paid||0)) : 0;
-    let oldDebt = r.oldDebt || 0;
-    let totalDebt = currentDebt + oldDebt;
+    let paid = r.paid||0;
+    let oldDebt = r.oldDebt||0;
+    let deposit = r.deposit||0;
+    let totalDebt = r.total ? (r.total + oldDebt - paid) : 0;
 
     if(r.total) totalMoney+=r.total;
     if(totalDebt>0) unpaidCount++;
 
-    let statusText="Chưa tính",statusClass="empty";
+    let statusText="CHƯA TÍNH",statusClass="empty";
     if(r.total){
-      if(totalDebt<=0){statusText="Đã thu";statusClass="done";}
-      else{statusText="Còn nợ";statusClass="unpaid";}
+      if(totalDebt<=0){statusText="ĐÃ THU";statusClass="done";}
+      else{statusText="CÒN NỢ";statusClass="unpaid";}
     }
 
     html+=`
     <div class="room ${openRoom==i?'open':''}">
-      <div class="header" onclick="toggleRoom(${i}, this.parentElement)">
+      <div class="header ${statusClass}" onclick="toggleRoom(${i}, this.parentElement)">
         <div>
           <div>Phòng ${i} - ${r.name||""}</div>
           <div style="font-size:12px;color:#94a3b8;">⚡ ${oldE} | 🚿 ${oldW}</div>
           <div class="status ${statusClass}">${statusText}</div>
         </div>
 
-        <div style="color:#c084fc;font-weight:700;">
+        <div style="font-weight:700;">
           ${r.total? r.total.toLocaleString()+"đ":"--"}
         </div>
       </div>
@@ -213,9 +190,10 @@ function render(){
         🚿 <input type="number" class="water" id="wo${i}" value="${oldW}">
         <input type="number" class="water" id="wn${i}" value="${r.next_w||""}"><br>
 
-        💰 <input type="number" class="money" id="paid${i}" placeholder="đã trả" value="${r.paid||""}">
-        🔥 <input type="number" class="debtold" id="oldDebt${i}" placeholder="nợ cũ" value="${r.oldDebt||""}">
-        🏦 <input type="number" class="deposit" id="deposit${i}" placeholder="tiền cọc" value="${r.deposit||""}">
+        💰 <input type="number" class="money" id="paid${i}" placeholder="đã trả" value="${paid}">
+        🔥 <input type="number" class="debtold" id="oldDebt${i}" placeholder="nợ cũ" value="${oldDebt}">
+        🏦 <input type="number" class="deposit" id="deposit${i}" placeholder="tiền cọc" value="${deposit}">
+        📅 <input type="number" class="dueday" id="due${i}" placeholder="ngày thu" value="${r.due||""}"><br>
 
         <div style="margin-top:6px;">
           ❗ Tổng nợ:
@@ -225,7 +203,8 @@ function render(){
         </div>
 
         <button class="calc" onclick="calc(${i})">TÍNH</button>
-        <button class="paid" onclick="savePaid(${i})">LƯU TRẢ + NỢ + CỌC</button>
+        <button class="paid" onclick="savePaid(${i})">LƯU TRẢ</button>
+        <button class="fullpaid" onclick="payFull(${i})">ĐÃ THU (FULL)</button>
         <button class="print" onclick="bill(${i})">IN</button>
         <button class="clear" onclick="del(${i})">XÓA</button>
       </div>
@@ -236,6 +215,8 @@ function render(){
   document.getElementById("list").innerHTML = html;
   document.getElementById("sumBox").innerText = totalMoney.toLocaleString()+"đ";
   document.getElementById("unpaidBox").innerText = unpaidCount;
+
+  checkDuePerRoom();
 }
 
 function setName(i,v){
@@ -255,7 +236,6 @@ function calc(i){
   let total=price+(e_new-e_old)*5000+(w_new-w_old)*10000;
 
   data[m][i]={...r,e_old,w_old,next_e:e_new,next_w:w_new,total};
-
   save();
   render();
 }
@@ -264,10 +244,20 @@ function savePaid(i){
   let val = +document.getElementById("paid"+i).value||0;
   let oldDebt = +document.getElementById("oldDebt"+i).value||0;
   let deposit = +document.getElementById("deposit"+i).value||0;
+  let due = +document.getElementById("due"+i).value||0;
 
   let r=getRoom(i);
 
-  data[m][i]={...r,paid:val,oldDebt:oldDebt,deposit:deposit};
+  data[m][i]={...r,paid:val,oldDebt:oldDebt,deposit:deposit,due:due};
+  save();
+  render();
+}
+
+function payFull(i){
+  let r=getRoom(i);
+  if(!r.total) return;
+
+  data[m][i]={...r,paid:r.total,oldDebt:0};
   save();
   render();
 }
@@ -279,10 +269,86 @@ function del(i){
 }
 
 function bill(i){
-  let r=getRoom(i);
+  let r = getRoom(i);
+  if(!r.total){ alert("Chưa tính tiền!"); return; }
+
+  let e_old=r.e_old||0, e_new=r.next_e||0;
+  let w_old=r.w_old||0, w_new=r.next_w||0;
+
+  let e_use=e_new-e_old, w_use=w_new-w_old;
+  let e_money=e_use*5000, w_money=w_use*10000;
+
+  let roomPrice=(i==7)?900000:1000000;
+
+  let oldDebt=r.oldDebt||0;
+  let paid=r.paid||0;
+
+  let total=roomPrice+e_money+w_money;
+  let finalDebt=total+oldDebt-paid;
+
+  let html=`
+  <html><head><title>Hóa đơn</title>
+  <style>
+  body{font-family:Arial;padding:20px}
+  h2{text-align:center}
+  table{width:100%;border-collapse:collapse}
+  td{padding:6px;border-bottom:1px solid #ccc}
+  .r{text-align:right}
+  .b{font-weight:bold}
+  </style></head>
+  <body>
+
+  <h2>HÓA ĐƠN PHÒNG ${i}</h2>
+
+  <table>
+  <tr><td>Khách</td><td class="r">${r.name||""}</td></tr>
+
+  <tr><td>Điện cũ</td><td class="r">${e_old}</td></tr>
+  <tr><td>Điện mới</td><td class="r">${e_new}</td></tr>
+  <tr><td>Sử dụng</td><td class="r">${e_use}</td></tr>
+  <tr><td>Tiền điện</td><td class="r">${e_money.toLocaleString()}đ</td></tr>
+
+  <tr><td>Nước cũ</td><td class="r">${w_old}</td></tr>
+  <tr><td>Nước mới</td><td class="r">${w_new}</td></tr>
+  <tr><td>Sử dụng</td><td class="r">${w_use}</td></tr>
+  <tr><td>Tiền nước</td><td class="r">${w_money.toLocaleString()}đ</td></tr>
+
+  <tr><td>Tiền phòng</td><td class="r">${roomPrice.toLocaleString()}đ</td></tr>
+  <tr><td>Nợ cũ</td><td class="r">${oldDebt.toLocaleString()}đ</td></tr>
+  <tr><td>Đã trả</td><td class="r">${paid.toLocaleString()}đ</td></tr>
+
+  <tr class="b"><td>TỔNG PHẢI TRẢ</td><td class="r">${finalDebt.toLocaleString()}đ</td></tr>
+  </table>
+
+  </body></html>`;
+
   let w=window.open("");
-  w.document.write(`<h3>Phòng ${i}</h3><p>${r.total}</p>`);
+  w.document.write(html);
+  w.document.close();
   w.print();
+}
+
+// 🔔 Nhắc ngày thu tiền từng phòng
+if ("Notification" in window) {
+  Notification.requestPermission();
+}
+
+function checkDuePerRoom(){
+  let today = new Date().getDate();
+  for(let i=1;i<=7;i++){
+    let r = getRoom(i);
+    if(!r.due) continue;
+    if(today > r.due){
+      console.log("Phòng "+i+" đã quá ngày thu!");
+      alert(`⚠️ Phòng ${i} đã quá ngày thu tiền!`);
+      if(Notification.permission==="granted"){
+        new Notification("Nhắc thu tiền trọ",{
+          body:`Phòng ${i} đã quá ngày thu tiền!`,
+          icon:"icon.png"
+        });
+      }
+    }
+  }
 }
 
 initMonth();
