@@ -3,21 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SÓI GHẺ VIP PRO</title>
+
+<title>Quản lý phòng trọ VIP PRO</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f172a">
 
 <style>
 body{font-family:Arial;background:#0f172a;color:#fff;margin:0;padding:10px;}
 h2{text-align:center;}
 
+select{padding:8px;border-radius:8px;margin-bottom:10px;width:100%;}
+
 .info{background:#111827;padding:10px;border-radius:10px;margin-bottom:10px;text-align:center;}
 .total{text-align:center;font-size:18px;margin-bottom:10px;}
-
-select{
-  padding:8px;
-  border-radius:8px;
-  margin-bottom:10px;
-  width:100%;
-}
 
 .room{border-radius:12px;margin-bottom:10px;overflow:hidden;}
 .roomHeader{padding:12px;display:flex;justify-content:space-between;cursor:pointer;}
@@ -31,15 +30,7 @@ select{
 input{width:90px;padding:8px;margin:5px;border-radius:8px;border:none;}
 .name{width:140px;}
 
-button{
-  padding:10px;
-  border:none;
-  border-radius:8px;
-  margin-top:5px;
-  font-size:14px;
-  width:100%;
-}
-
+button{padding:10px;border:none;border-radius:8px;margin-top:5px;width:100%;}
 .calc{background:#22c55e;}
 .paid{background:#3b82f6;}
 .print{background:#f59e0b;}
@@ -54,13 +45,11 @@ button{
 
 <body>
 
-<h2>🏠 QUẢN LÝ PHÒNG TRỌ SÓI GHẺ</h2>
+<h2>🏠 QUẢN LÝ PHÒNG TRỌ VIP PRO</h2>
 
 <select id="month" onchange="changeMonth()"></select>
 
-<div class="info">
-💡 5,000đ/kWh | 🚿 10,000đ/m³
-</div>
+<div class="info">💡 5,000đ/kWh | 🚿 10,000đ/m³</div>
 
 <div class="total" id="total"></div>
 <div class="warn" id="warn"></div>
@@ -76,17 +65,17 @@ function save(){
   localStorage.setItem("month",currentMonth);
 }
 
-function changeMonth(){
-  currentMonth=document.getElementById("month").value;
-  save();render();
-}
-
 function initMonth(){
   let html="";
   for(let i=1;i<=12;i++){
     html+=`<option value="${i}" ${i==currentMonth?"selected":""}>Tháng ${i}</option>`;
   }
   document.getElementById("month").innerHTML=html;
+}
+
+function changeMonth(){
+  currentMonth=document.getElementById("month").value;
+  save();render();
 }
 
 function getRoom(i){
@@ -100,6 +89,21 @@ function getPrevRoom(i){
   return (data[prev]||{})[i]||{};
 }
 
+function autoFillOld(i){
+  let r=getRoom(i);
+  let prev=getPrevRoom(i);
+
+  // nếu chưa có số cũ thì lấy từ tháng trước
+  if(!r.e_old && prev.next_e){
+    r.e_old = prev.next_e;
+  }
+  if(!r.w_old && prev.next_w){
+    r.w_old = prev.next_w;
+  }
+
+  data[currentMonth][i]=r;
+}
+
 function status(room){
   if(!room.total) return {c:"red",t:"Chưa tính"};
   if(room.paid) return {c:"green",t:"Đã thu"};
@@ -110,6 +114,8 @@ function render(){
   let html="",sum=0,unpaid=0;
 
   for(let i=1;i<=7;i++){
+    autoFillOld(i);
+
     let r=getRoom(i);
     let prev=getPrevRoom(i);
     let s=status(r);
@@ -132,12 +138,12 @@ function render(){
         👤 <input class="name" value="${r.name||''}" onchange="saveName(${i},this.value)"><br>
 
         💡 Điện:<br>
-        <input id="e_old_${i}" value="${prev.next_e||''}">
-        <input id="e_new_${i}" placeholder="mới"><br>
+        <input id="e_old_${i}" value="${r.e_old||''}">
+        <input id="e_new_${i}" value="${r.next_e||''}"><br>
 
         🚿 Nước:<br>
-        <input id="w_old_${i}" value="${prev.next_w||''}">
-        <input id="w_new_${i}" placeholder="mới"><br>
+        <input id="w_old_${i}" value="${r.w_old||''}">
+        <input id="w_new_${i}" value="${r.next_w||''}"><br>
 
         <button class="calc" onclick="calc(${i})">TÍNH TIỀN</button>
         <button class="paid" onclick="togglePaid(${i})">ĐÃ THU</button>
@@ -166,7 +172,6 @@ function render(){
 }
 
 function saveName(i,name){
-  if(!data[currentMonth]) data[currentMonth]={};
   data[currentMonth][i]={...getRoom(i),name};
   save();
 }
@@ -180,8 +185,6 @@ function calc(i){
   let w_new=+document.getElementById(`w_new_${i}`).value||0;
 
   let total=price+(e_new-e_old)*5000+(w_new-w_old)*10000;
-
-  if(!data[currentMonth]) data[currentMonth]={};
 
   data[currentMonth][i]={
     ...getRoom(i),
@@ -197,18 +200,14 @@ function calc(i){
 
 function togglePaid(i){
   let r=getRoom(i);
-  if(!r) return;
-
   r.paid=!r.paid;
   r.date=r.paid?new Date().toLocaleString("vi-VN"):"";
-
   data[currentMonth][i]=r;
-
   save();render();
 }
 
 function clearRoom(i){
-  if(data[currentMonth]) delete data[currentMonth][i];
+  delete data[currentMonth][i];
   save();render();
 }
 
@@ -226,13 +225,14 @@ function printBill(i){
   win.print();
 }
 
-initMonth();
-render();
-</script>
-<script>
+// PWA
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("sw.js");
 }
+
+initMonth();
+render();
 </script>
+
 </body>
 </html>
