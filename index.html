@@ -4,230 +4,321 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Quản lý phòng trọ VIP PRO</title>
-
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0f172a">
+<title>QL Trọ PRO DARK</title>
 
 <style>
-body{font-family:Arial;background:#0f172a;color:#fff;margin:0;padding:10px;}
-h2{text-align:center;}
+:root{
+  --bg:#0f172a;
+  --card:#1e293b;
+  --card-soft:#273449;
 
-select{padding:8px;border-radius:8px;margin-bottom:10px;width:100%;}
+  --content:#334155;
+  --input:#475569;
 
-.info{background:#111827;padding:10px;border-radius:10px;margin-bottom:10px;text-align:center;}
-.total{text-align:center;font-size:18px;margin-bottom:10px;}
+  --text:#e2e8f0;
+  --sub:#94a3b8;
 
-.room{border-radius:12px;margin-bottom:10px;overflow:hidden;}
-.roomHeader{padding:12px;display:flex;justify-content:space-between;cursor:pointer;}
-.roomContent{display:none;padding:10px;background:#1e293b;}
-.room.open .roomContent{display:block;}
+  --electric:#facc15;
+  --water:#38bdf8;
+  --money:#c084fc;
 
-.red{background:#7f1d1d;}
-.yellow{background:#78350f;}
-.green{background:#065f46;}
+  --green:#22c55e;
+  --yellow:#f59e0b;
+  --red:#ef4444;
+  --blue:#3b82f6;
+}
 
-input{width:90px;padding:8px;margin:5px;border-radius:8px;border:none;}
-.name{width:140px;}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  background:var(--bg);
+  color:var(--text);
+  margin:0;
+  padding:12px;
+}
 
-button{padding:10px;border:none;border-radius:8px;margin-top:5px;width:100%;}
-.calc{background:#22c55e;}
-.paid{background:#3b82f6;}
-.print{background:#f59e0b;}
-.clear{background:#ef4444;}
+h2{text-align:center;margin-bottom:14px;}
 
-.result{margin-top:8px;font-size:16px;color:#00ffcc;font-weight:bold;}
-.small{font-size:13px;color:#60a5fa;}
-.history{font-size:12px;color:#94a3b8;}
-.warn{color:#f87171;text-align:center;margin-bottom:10px;}
+select{
+  width:100%;
+  padding:12px;
+  border-radius:14px;
+  border:none;
+  background:var(--card);
+  color:var(--text);
+  margin-bottom:14px;
+}
+
+.top{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-bottom:14px;
+}
+
+.box{
+  background:var(--card);
+  border-radius:16px;
+  padding:16px;
+  text-align:center;
+}
+
+.big{font-size:20px;font-weight:700;}
+.small{font-size:12px;color:var(--sub);}
+
+.room{
+  background:var(--card);
+  border-radius:18px;
+  margin-bottom:12px;
+  overflow:hidden;
+}
+
+.header{
+  display:flex;
+  justify-content:space-between;
+  padding:14px;
+  cursor:pointer;
+}
+
+.title{font-weight:600;}
+
+.meta{font-size:12px;margin-top:3px;}
+.meta span{margin-right:10px;}
+
+.meta .e{color:var(--electric);}
+.meta .w{color:var(--water);}
+
+.price{font-weight:700;color:var(--money);}
+.old{font-size:12px;color:var(--sub);}
+
+/* STATUS */
+.status{
+  font-size:12px;
+  margin-top:5px;
+  padding:4px 10px;
+  border-radius:999px;
+  display:inline-block;
+}
+
+.done{background:rgba(34,197,94,0.2);color:#4ade80;}
+.unpaid{background:rgba(245,158,11,0.2);color:#fbbf24;}
+.empty{background:rgba(148,163,184,0.2);color:#cbd5f5;}
+
+/* 🔥 CONTENT MÀU DARK NHẸ */
+.content{
+  max-height:0;
+  overflow:hidden;
+  transition:0.3s;
+  background:var(--content);
+  color:var(--text);
+}
+
+.room.open .content{
+  max-height:500px;
+  padding:12px;
+  border-top:1px solid #475569;
+}
+
+/* input */
+input{
+  width:80px;
+  padding:10px;
+  margin:5px;
+  border-radius:10px;
+  border:none;
+  color:#fff;
+}
+
+/* màu input dịu */
+.electric{background:#78350f;}
+.water{background:#0c4a6e;}
+.name{width:150px;background:var(--input);}
+
+/* button */
+button{
+  width:100%;
+  margin-top:6px;
+  padding:12px;
+  border:none;
+  border-radius:12px;
+  font-weight:600;
+  color:#fff;
+}
+
+.calc{background:#16a34a;}
+.paid{background:#2563eb;}
+.print{background:#9333ea;}
+.clear{background:#dc2626;}
 </style>
 </head>
 
 <body>
 
-<h2>🏠 QUẢN LÝ PHÒNG TRỌ VIP PRO</h2>
+<h2>🏠 SÓI GHẺ</h2>
 
-<select id="month" onchange="changeMonth()"></select>
+<select id="month"></select>
 
-<div class="info">💡 5,000đ/kWh | 🚿 10,000đ/m³</div>
-
-<div class="total" id="total"></div>
-<div class="warn" id="warn"></div>
+<div class="top">
+  <div class="box">
+    <div class="big" id="sumBox">0đ</div>
+    <div class="small">Tổng tháng</div>
+  </div>
+  <div class="box">
+    <div class="big" id="unpaidBox">0</div>
+    <div class="small">Chưa thu</div>
+  </div>
+</div>
 
 <div id="list"></div>
 
 <script>
-let currentMonth = localStorage.getItem("month") || new Date().getMonth()+1;
-let data = JSON.parse(localStorage.getItem("troVIP")||"{}");
+let m = localStorage.getItem("m") || new Date().getMonth()+1;
+let data = JSON.parse(localStorage.getItem("tro")||"{}");
+
+const monthEl = document.getElementById("month");
 
 function save(){
-  localStorage.setItem("troVIP",JSON.stringify(data));
-  localStorage.setItem("month",currentMonth);
+  localStorage.setItem("tro",JSON.stringify(data));
+  localStorage.setItem("m",m);
 }
 
 function initMonth(){
-  let html="";
+  let h="";
   for(let i=1;i<=12;i++){
-    html+=`<option value="${i}" ${i==currentMonth?"selected":""}>Tháng ${i}</option>`;
+    h+=`<option value="${i}" ${i==m?"selected":""}>Tháng ${i}</option>`;
   }
-  document.getElementById("month").innerHTML=html;
+  monthEl.innerHTML=h;
 }
 
-function changeMonth(){
-  currentMonth=document.getElementById("month").value;
-  save();render();
-}
+monthEl.onchange = ()=>{
+  m=monthEl.value;
+  save();
+  render();
+};
 
 function getRoom(i){
-  if(!data[currentMonth]) data[currentMonth]={};
-  return data[currentMonth][i]||{};
+  if(!data[m]) data[m]={};
+  return data[m][i]||{};
 }
 
-function getPrevRoom(i){
-  let prev=currentMonth-1;
-  if(prev<=0) return {};
-  return (data[prev]||{})[i]||{};
-}
-
-function autoFillOld(i){
-  let r=getRoom(i);
-  let prev=getPrevRoom(i);
-
-  // nếu chưa có số cũ thì lấy từ tháng trước
-  if(!r.e_old && prev.next_e){
-    r.e_old = prev.next_e;
+function getPrev(i){
+  for(let k=m-1;k>=1;k--){
+    if(data[k] && data[k][i] && data[k][i].next_e){
+      return data[k][i];
+    }
   }
-  if(!r.w_old && prev.next_w){
-    r.w_old = prev.next_w;
-  }
-
-  data[currentMonth][i]=r;
+  return {};
 }
 
-function status(room){
-  if(!room.total) return {c:"red",t:"Chưa tính"};
-  if(room.paid) return {c:"green",t:"Đã thu"};
-  return {c:"yellow",t:"Chưa thu"};
+function auto(i){
+  let r=getRoom(i),p=getPrev(i);
+  if(!r.e_old && p.next_e) r.e_old=p.next_e;
+  if(!r.w_old && p.next_w) r.w_old=p.next_w;
+  data[m][i]=r;
 }
 
 function render(){
-  let html="",sum=0,unpaid=0;
+  let html="";
+  let totalMoney=0;
+  let unpaidCount=0;
 
   for(let i=1;i<=7;i++){
-    autoFillOld(i);
+    auto(i);
 
     let r=getRoom(i);
-    let prev=getPrevRoom(i);
-    let s=status(r);
+    let p=getPrev(i);
 
-    if(r.total) sum+=r.total;
-    if(r.total && !r.paid) unpaid++;
+    let oldE = p.next_e ?? r.e_old ?? 0;
+    let oldW = p.next_w ?? r.w_old ?? 0;
+
+    if(r.total) totalMoney+=r.total;
+    if(r.total && !r.paid) unpaidCount++;
+
+    let statusText="Chưa tính",statusClass="empty";
+    if(r.total){
+      if(r.paid){statusText="Đã thu";statusClass="done";}
+      else{statusText="Chưa thu";statusClass="unpaid";}
+    }
 
     html+=`
-    <div class="room ${s.c}">
-      <div class="roomHeader" onclick="this.parentElement.classList.toggle('open')">
+    <div class="room">
+      <div class="header" onclick="this.parentElement.classList.toggle('open')">
         <div>
-          Phòng ${i} - ${r.name||""}<br>
-          <small>${s.t}</small>
+          <div class="title">Phòng ${i} - ${r.name||""}</div>
+          <div class="meta">
+            <span class="e">⚡ ${oldE}</span>
+            <span class="w">🚿 ${oldW}</span>
+          </div>
+          <div class="status ${statusClass}">${statusText}</div>
         </div>
-        <div>${r.total? r.total.toLocaleString()+"đ":""}</div>
+
+        <div>
+          <div class="price">${r.total? r.total.toLocaleString()+"đ":"--"}</div>
+          <div class="old">${p.total? p.total.toLocaleString()+"đ":"0đ"}</div>
+        </div>
       </div>
 
-      <div class="roomContent">
+      <div class="content">
+        <input class="name" value="${r.name||""}" onchange="setName(${i},this.value)"><br>
 
-        👤 <input class="name" value="${r.name||''}" onchange="saveName(${i},this.value)"><br>
+        ⚡ <input class="electric" id="eo${i}" value="${oldE}">
+        <input class="electric" id="en${i}" value="${r.next_e||""}"><br>
 
-        💡 Điện:<br>
-        <input id="e_old_${i}" value="${r.e_old||''}">
-        <input id="e_new_${i}" value="${r.next_e||''}"><br>
+        🚿 <input class="water" id="wo${i}" value="${oldW}">
+        <input class="water" id="wn${i}" value="${r.next_w||""}"><br>
 
-        🚿 Nước:<br>
-        <input id="w_old_${i}" value="${r.w_old||''}">
-        <input id="w_new_${i}" value="${r.next_w||''}"><br>
-
-        <button class="calc" onclick="calc(${i})">TÍNH TIỀN</button>
+        <button class="calc" onclick="calc(${i})">TÍNH</button>
         <button class="paid" onclick="togglePaid(${i})">ĐÃ THU</button>
-        <button class="print" onclick="printBill(${i})">IN HÓA ĐƠN</button>
-        <button class="clear" onclick="clearRoom(${i})">XÓA</button>
-
-        <div class="result">${r.total?"👉 "+r.total.toLocaleString()+"đ":""}</div>
-
-        <div class="history">
-          📊 Tháng trước: Điện ${prev.next_e||0} | Nước ${prev.next_w||0}
-        </div>
-
-        <div class="small">
-          ${r.paid?"Đã thu: "+r.date:""}
-        </div>
-
+        <button class="print" onclick="bill(${i})">IN</button>
+        <button class="clear" onclick="del(${i})">XÓA</button>
       </div>
     </div>
     `;
   }
 
-  document.getElementById("list").innerHTML=html;
-  document.getElementById("total").innerText="💰 Tổng: "+sum.toLocaleString()+"đ";
-  document.getElementById("warn").innerText=
-    unpaid? "⚠️ "+unpaid+" phòng chưa thu tiền":"";
+  document.getElementById("list").innerHTML = html;
+  document.getElementById("sumBox").innerText = totalMoney.toLocaleString()+"đ";
+  document.getElementById("unpaidBox").innerText = unpaidCount;
 }
 
-function saveName(i,name){
-  data[currentMonth][i]={...getRoom(i),name};
+function setName(i,v){
+  data[m][i]={...getRoom(i),name:v};
   save();
 }
 
 function calc(i){
-  let price=(i===7)?900000:1000000;
+  let e_old=+document.getElementById("eo"+i).value||0;
+  let e_new=+document.getElementById("en"+i).value||0;
+  let w_old=+document.getElementById("wo"+i).value||0;
+  let w_new=+document.getElementById("wn"+i).value||0;
 
-  let e_old=+document.getElementById(`e_old_${i}`).value||0;
-  let e_new=+document.getElementById(`e_new_${i}`).value||0;
-  let w_old=+document.getElementById(`w_old_${i}`).value||0;
-  let w_new=+document.getElementById(`w_new_${i}`).value||0;
-
+  let price=(i==7)?900000:1000000;
   let total=price+(e_new-e_old)*5000+(w_new-w_old)*10000;
 
-  data[currentMonth][i]={
-    ...getRoom(i),
-    e_old,w_old,
-    next_e:e_new,
-    next_w:w_new,
-    total,
-    paid:false
-  };
+  data[m][i]={...getRoom(i),e_old,w_old,next_e:e_new,next_w:w_new,total,paid:false};
 
-  save();render();
+  save();
+  render();
 }
 
 function togglePaid(i){
   let r=getRoom(i);
   r.paid=!r.paid;
-  r.date=r.paid?new Date().toLocaleString("vi-VN"):"";
-  data[currentMonth][i]=r;
-  save();render();
+  data[m][i]=r;
+  save();
+  render();
 }
 
-function clearRoom(i){
-  delete data[currentMonth][i];
-  save();render();
+function del(i){
+  delete data[m][i];
+  save();
+  render();
 }
 
-function printBill(i){
+function bill(i){
   let r=getRoom(i);
-  if(!r) return alert("Chưa có dữ liệu");
-
-  let win=window.open("","","width=400,height=600");
-  win.document.write(`
-  <h3>HÓA ĐƠN PHÒNG ${i} - THÁNG ${currentMonth}</h3>
-  <p>Khách: ${r.name||""}</p>
-  <p>${r.total.toLocaleString()}đ</p>
-  <p>${r.date||""}</p>
-  `);
-  win.print();
-}
-
-// PWA
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("sw.js");
+  let w=window.open("");
+  w.document.write(`<h3>Phòng ${i}</h3><p>${r.total}</p>`);
+  w.print();
 }
 
 initMonth();
