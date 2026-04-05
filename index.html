@@ -3,18 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>QL Trọ PRO DARK</title>
+<title>QL Trọ PRO</title>
 
 <style>
 :root{
   --bg:#0f172a;
   --card:#1e293b;
-  --card-soft:#273449;
-
   --content:#334155;
   --input:#475569;
-
   --text:#e2e8f0;
   --sub:#94a3b8;
 
@@ -28,143 +24,77 @@
   --blue:#3b82f6;
 }
 
-body{
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
-  background:var(--bg);
-  color:var(--text);
-  margin:0;
-  padding:12px;
-}
-
-h2{text-align:center;margin-bottom:14px;}
+body{font-family:system-ui;background:var(--bg);color:var(--text);padding:12px;}
+h2{text-align:center;}
 
 select{
-  width:100%;
-  padding:12px;
-  border-radius:14px;
-  border:none;
-  background:var(--card);
-  color:var(--text);
-  margin-bottom:14px;
+  width:100%;padding:12px;border-radius:12px;border:none;
+  background:var(--card);color:#fff;margin-bottom:12px;
 }
 
 .top{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-  margin-bottom:14px;
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:10px;margin-bottom:12px;
 }
 
-.box{
-  background:var(--card);
-  border-radius:16px;
-  padding:16px;
-  text-align:center;
-}
+.box{background:var(--card);border-radius:16px;padding:14px;text-align:center;}
 
-.big{font-size:20px;font-weight:700;}
-.small{font-size:12px;color:var(--sub);}
-
-.room{
-  background:var(--card);
-  border-radius:18px;
-  margin-bottom:12px;
-  overflow:hidden;
-}
+.room{background:var(--card);border-radius:18px;margin-bottom:12px;overflow:hidden;}
 
 .header{
-  display:flex;
-  justify-content:space-between;
-  padding:14px;
-  cursor:pointer;
+  display:flex;justify-content:space-between;
+  padding:14px;cursor:pointer;
 }
 
-.title{font-weight:600;}
-
-.meta{font-size:12px;margin-top:3px;}
-.meta span{margin-right:10px;}
-
-.meta .e{color:var(--electric);}
-.meta .w{color:var(--water);}
-
-.price{font-weight:700;color:var(--money);}
-.old{font-size:12px;color:var(--sub);}
-
-/* STATUS */
-.status{
-  font-size:12px;
-  margin-top:5px;
-  padding:4px 10px;
-  border-radius:999px;
-  display:inline-block;
-}
-
-.done{background:rgba(34,197,94,0.2);color:#4ade80;}
-.unpaid{background:rgba(245,158,11,0.2);color:#fbbf24;}
-.empty{background:rgba(148,163,184,0.2);color:#cbd5f5;}
-
-/* 🔥 CONTENT MÀU DARK NHẸ */
 .content{
-  max-height:0;
-  overflow:hidden;
-  transition:0.3s;
+  max-height:0;overflow:hidden;transition:0.3s;
   background:var(--content);
-  color:var(--text);
 }
+.room.open .content{max-height:700px;padding:12px;}
 
-.room.open .content{
-  max-height:500px;
-  padding:12px;
-  border-top:1px solid #475569;
-}
-
-/* input */
 input{
-  width:80px;
-  padding:10px;
-  margin:5px;
-  border-radius:10px;
-  border:none;
-  color:#fff;
+  width:80px;padding:10px;margin:5px;
+  border-radius:10px;border:none;color:#fff;
 }
 
-/* màu input dịu */
+.name{width:150px;background:var(--input);}
 .electric{background:#78350f;}
 .water{background:#0c4a6e;}
-.name{width:150px;background:var(--input);}
+.money{background:#312e81;}
+.debtold{background:#7f1d1d;}
+.deposit{background:#065f46;} /* xanh lá đậm cho tiền cọc */
 
-/* button */
 button{
-  width:100%;
-  margin-top:6px;
-  padding:12px;
-  border:none;
-  border-radius:12px;
-  font-weight:600;
-  color:#fff;
+  width:100%;margin-top:6px;padding:12px;
+  border:none;border-radius:12px;font-weight:600;color:#fff;
 }
 
 .calc{background:#16a34a;}
 .paid{background:#2563eb;}
 .print{background:#9333ea;}
 .clear{background:#dc2626;}
+
+.status{font-size:12px;margin-top:4px;}
+.done{color:#4ade80;}
+.unpaid{color:#fbbf24;}
+.empty{color:#94a3b8;}
 </style>
 </head>
 
 <body>
 
-<h2>🏠 SÓI GHẺ</h2>
+<h2>🏠 QUẢN LÝ TRỌ</h2>
 
 <select id="month"></select>
 
 <div class="top">
   <div class="box">
-    <div class="big" id="sumBox">0đ</div>
-    <div class="small">Tổng tháng</div>
+    <div id="sumBox">0đ</div>
+    <div>Tổng tháng</div>
   </div>
   <div class="box">
-    <div class="big" id="unpaidBox">0</div>
-    <div class="small">Chưa thu</div>
+    <div id="unpaidBox">0</div>
+    <div>Chưa thu</div>
   </div>
 </div>
 
@@ -173,6 +103,8 @@ button{
 <script>
 let m = localStorage.getItem("m") || new Date().getMonth()+1;
 let data = JSON.parse(localStorage.getItem("tro")||"{}");
+
+let openRoom = null;
 
 const monthEl = document.getElementById("month");
 
@@ -189,11 +121,7 @@ function initMonth(){
   monthEl.innerHTML=h;
 }
 
-monthEl.onchange = ()=>{
-  m=monthEl.value;
-  save();
-  render();
-};
+monthEl.onchange = ()=>{m=monthEl.value;save();render();};
 
 function getRoom(i){
   if(!data[m]) data[m]={};
@@ -216,6 +144,16 @@ function auto(i){
   data[m][i]=r;
 }
 
+function toggleRoom(i, el){
+  if(el.classList.contains("open")){
+    el.classList.remove("open");
+    openRoom = null;
+  }else{
+    openRoom = i;
+    render();
+  }
+}
+
 function render(){
   let html="";
   let totalMoney=0;
@@ -230,44 +168,55 @@ function render(){
     let oldE = p.next_e ?? r.e_old ?? 0;
     let oldW = p.next_w ?? r.w_old ?? 0;
 
+    let currentDebt = r.total ? (r.total - (r.paid||0)) : 0;
+    let oldDebt = r.oldDebt || 0;
+    let totalDebt = currentDebt + oldDebt;
+
     if(r.total) totalMoney+=r.total;
-    if(r.total && !r.paid) unpaidCount++;
+    if(totalDebt>0) unpaidCount++;
 
     let statusText="Chưa tính",statusClass="empty";
     if(r.total){
-      if(r.paid){statusText="Đã thu";statusClass="done";}
-      else{statusText="Chưa thu";statusClass="unpaid";}
+      if(totalDebt<=0){statusText="Đã thu";statusClass="done";}
+      else{statusText="Còn nợ";statusClass="unpaid";}
     }
 
     html+=`
-    <div class="room">
-      <div class="header" onclick="this.parentElement.classList.toggle('open')">
+    <div class="room ${openRoom==i?'open':''}">
+      <div class="header" onclick="toggleRoom(${i}, this.parentElement)">
         <div>
-          <div class="title">Phòng ${i} - ${r.name||""}</div>
-          <div class="meta">
-            <span class="e">⚡ ${oldE}</span>
-            <span class="w">🚿 ${oldW}</span>
-          </div>
+          <div>Phòng ${i} - ${r.name||""}</div>
+          <div style="font-size:12px;color:#94a3b8;">⚡ ${oldE} | 🚿 ${oldW}</div>
           <div class="status ${statusClass}">${statusText}</div>
         </div>
 
-        <div>
-          <div class="price">${r.total? r.total.toLocaleString()+"đ":"--"}</div>
-          <div class="old">${p.total? p.total.toLocaleString()+"đ":"0đ"}</div>
+        <div style="color:#c084fc;font-weight:700;">
+          ${r.total? r.total.toLocaleString()+"đ":"--"}
         </div>
       </div>
 
       <div class="content">
         <input class="name" value="${r.name||""}" onchange="setName(${i},this.value)"><br>
 
-        ⚡ <input class="electric" id="eo${i}" value="${oldE}">
-        <input class="electric" id="en${i}" value="${r.next_e||""}"><br>
+        ⚡ <input type="number" class="electric" id="eo${i}" value="${oldE}">
+        <input type="number" class="electric" id="en${i}" value="${r.next_e||""}"><br>
 
-        🚿 <input class="water" id="wo${i}" value="${oldW}">
-        <input class="water" id="wn${i}" value="${r.next_w||""}"><br>
+        🚿 <input type="number" class="water" id="wo${i}" value="${oldW}">
+        <input type="number" class="water" id="wn${i}" value="${r.next_w||""}"><br>
+
+        💰 <input type="number" class="money" id="paid${i}" placeholder="đã trả" value="${r.paid||""}">
+        🔥 <input type="number" class="debtold" id="oldDebt${i}" placeholder="nợ cũ" value="${r.oldDebt||""}">
+        🏦 <input type="number" class="deposit" id="deposit${i}" placeholder="tiền cọc" value="${r.deposit||""}">
+
+        <div style="margin-top:6px;">
+          ❗ Tổng nợ:
+          <b style="color:#f87171">
+            ${r.total ? (totalDebt>0 ? totalDebt.toLocaleString()+"đ" : "0đ") : "--"}
+          </b>
+        </div>
 
         <button class="calc" onclick="calc(${i})">TÍNH</button>
-        <button class="paid" onclick="togglePaid(${i})">ĐÃ THU</button>
+        <button class="paid" onclick="savePaid(${i})">LƯU TRẢ + NỢ + CỌC</button>
         <button class="print" onclick="bill(${i})">IN</button>
         <button class="clear" onclick="del(${i})">XÓA</button>
       </div>
@@ -286,6 +235,8 @@ function setName(i,v){
 }
 
 function calc(i){
+  let r=getRoom(i);
+
   let e_old=+document.getElementById("eo"+i).value||0;
   let e_new=+document.getElementById("en"+i).value||0;
   let w_old=+document.getElementById("wo"+i).value||0;
@@ -294,16 +245,20 @@ function calc(i){
   let price=(i==7)?900000:1000000;
   let total=price+(e_new-e_old)*5000+(w_new-w_old)*10000;
 
-  data[m][i]={...getRoom(i),e_old,w_old,next_e:e_new,next_w:w_new,total,paid:false};
+  data[m][i]={...r,e_old,w_old,next_e:e_new,next_w:w_new,total};
 
   save();
   render();
 }
 
-function togglePaid(i){
+function savePaid(i){
+  let val = +document.getElementById("paid"+i).value||0;
+  let oldDebt = +document.getElementById("oldDebt"+i).value||0;
+  let deposit = +document.getElementById("deposit"+i).value||0;
+
   let r=getRoom(i);
-  r.paid=!r.paid;
-  data[m][i]=r;
+
+  data[m][i]={...r,paid:val,oldDebt:oldDebt,deposit:deposit};
   save();
   render();
 }
