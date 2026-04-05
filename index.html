@@ -3,25 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>PHÒNG TRỌ SÓI GHẺ</title>
 
 <style>
 body{font-family:Arial;background:#0f172a;color:#fff;margin:0;padding:10px;}
 h2{text-align:center;}
 
-.info{
-  background:#111827;
-  padding:10px;
-  border-radius:10px;
-  margin-bottom:10px;
-  text-align:center;
-}
+.info{background:#111827;padding:10px;border-radius:10px;margin-bottom:10px;text-align:center;}
+.total{text-align:center;font-size:18px;margin-bottom:10px;}
 
-.total{
-  text-align:center;
-  font-size:18px;
+select{
+  padding:8px;
+  border-radius:8px;
   margin-bottom:10px;
+  width:100%;
 }
 
 .room{border-radius:12px;margin-bottom:10px;overflow:hidden;}
@@ -45,20 +40,23 @@ button{
   width:100%;
 }
 
-.calc{background:#22c55e;color:#fff;}
-.paid{background:#3b82f6;color:#fff;}
-.print{background:#f59e0b;color:#fff;}
-.clear{background:#ef4444;color:#fff;}
+.calc{background:#22c55e;}
+.paid{background:#3b82f6;}
+.print{background:#f59e0b;}
+.clear{background:#ef4444;}
 
 .result{margin-top:8px;font-size:16px;color:#00ffcc;font-weight:bold;}
 .small{font-size:13px;color:#60a5fa;}
+.history{font-size:12px;color:#94a3b8;}
 .warn{color:#f87171;text-align:center;margin-bottom:10px;}
 </style>
 </head>
 
 <body>
 
-<h2>🏠 QUẢN LÝ PHÒNG TRỌ VIP</h2>
+<h2>🏠 QUẢN LÝ PHÒNG TRỌ VIP PRO</h2>
+
+<select id="month" onchange="changeMonth()"></select>
 
 <div class="info">
 💡 5,000đ/kWh | 🚿 10,000đ/m³
@@ -70,13 +68,37 @@ button{
 <div id="list"></div>
 
 <script>
+let currentMonth = localStorage.getItem("month") || new Date().getMonth()+1;
 let data = JSON.parse(localStorage.getItem("troVIP")||"{}");
 
-function save(){localStorage.setItem("troVIP",JSON.stringify(data));}
+function save(){
+  localStorage.setItem("troVIP",JSON.stringify(data));
+  localStorage.setItem("month",currentMonth);
+}
 
-function toggle(el){el.parentElement.classList.toggle("open");}
+function changeMonth(){
+  currentMonth=document.getElementById("month").value;
+  save();render();
+}
 
-function getNow(){return new Date().toLocaleString("vi-VN");}
+function initMonth(){
+  let html="";
+  for(let i=1;i<=12;i++){
+    html+=`<option value="${i}" ${i==currentMonth?"selected":""}>Tháng ${i}</option>`;
+  }
+  document.getElementById("month").innerHTML=html;
+}
+
+function getRoom(i){
+  if(!data[currentMonth]) data[currentMonth]={};
+  return data[currentMonth][i]||{};
+}
+
+function getPrevRoom(i){
+  let prev=currentMonth-1;
+  if(prev<=0) return {};
+  return (data[prev]||{})[i]||{};
+}
 
 function status(room){
   if(!room.total) return {c:"red",t:"Chưa tính"};
@@ -88,7 +110,8 @@ function render(){
   let html="",sum=0,unpaid=0;
 
   for(let i=1;i<=7;i++){
-    let r=data[i]||{};
+    let r=getRoom(i);
+    let prev=getPrevRoom(i);
     let s=status(r);
 
     if(r.total) sum+=r.total;
@@ -96,7 +119,7 @@ function render(){
 
     html+=`
     <div class="room ${s.c}">
-      <div class="roomHeader" onclick="toggle(this)">
+      <div class="roomHeader" onclick="this.parentElement.classList.toggle('open')">
         <div>
           Phòng ${i} - ${r.name||""}<br>
           <small>${s.t}</small>
@@ -106,14 +129,14 @@ function render(){
 
       <div class="roomContent">
 
-        👤 <input class="name" placeholder="Tên" value="${r.name||''}" onchange="saveName(${i},this.value)"><br>
+        👤 <input class="name" value="${r.name||''}" onchange="saveName(${i},this.value)"><br>
 
         💡 Điện:<br>
-        <input id="e_old_${i}" value="${r.e_old||r.next_e||''}">
+        <input id="e_old_${i}" value="${prev.next_e||''}">
         <input id="e_new_${i}" placeholder="mới"><br>
 
         🚿 Nước:<br>
-        <input id="w_old_${i}" value="${r.w_old||r.next_w||''}">
+        <input id="w_old_${i}" value="${prev.next_w||''}">
         <input id="w_new_${i}" placeholder="mới"><br>
 
         <button class="calc" onclick="calc(${i})">TÍNH TIỀN</button>
@@ -123,8 +146,8 @@ function render(){
 
         <div class="result">${r.total?"👉 "+r.total.toLocaleString()+"đ":""}</div>
 
-        <div class="small">
-          ${r.next_e?`Tháng sau: ${r.next_e} / ${r.next_w}`:""}
+        <div class="history">
+          📊 Tháng trước: Điện ${prev.next_e||0} | Nước ${prev.next_w||0}
         </div>
 
         <div class="small">
@@ -143,7 +166,8 @@ function render(){
 }
 
 function saveName(i,name){
-  data[i]={...data[i],name};
+  if(!data[currentMonth]) data[currentMonth]={};
+  data[currentMonth][i]={...getRoom(i),name};
   save();
 }
 
@@ -157,30 +181,44 @@ function calc(i){
 
   let total=price+(e_new-e_old)*5000+(w_new-w_old)*10000;
 
-  data[i]={...data[i],e_old,w_old,next_e:e_new,next_w:w_new,total,paid:false};
+  if(!data[currentMonth]) data[currentMonth]={};
+
+  data[currentMonth][i]={
+    ...getRoom(i),
+    e_old,w_old,
+    next_e:e_new,
+    next_w:w_new,
+    total,
+    paid:false
+  };
 
   save();render();
 }
 
 function togglePaid(i){
-  if(!data[i]) return;
-  data[i].paid=!data[i].paid;
-  data[i].date=data[i].paid?getNow():"";
+  let r=getRoom(i);
+  if(!r) return;
+
+  r.paid=!r.paid;
+  r.date=r.paid?new Date().toLocaleString("vi-VN"):"";
+
+  data[currentMonth][i]=r;
+
   save();render();
 }
 
 function clearRoom(i){
-  delete data[i];
+  if(data[currentMonth]) delete data[currentMonth][i];
   save();render();
 }
 
 function printBill(i){
-  let r=data[i];
+  let r=getRoom(i);
   if(!r) return alert("Chưa có dữ liệu");
 
   let win=window.open("","","width=400,height=600");
   win.document.write(`
-  <h3>HÓA ĐƠN PHÒNG ${i}</h3>
+  <h3>HÓA ĐƠN PHÒNG ${i} - THÁNG ${currentMonth}</h3>
   <p>Khách: ${r.name||""}</p>
   <p>${r.total.toLocaleString()}đ</p>
   <p>${r.date||""}</p>
@@ -188,6 +226,7 @@ function printBill(i){
   win.print();
 }
 
+initMonth();
 render();
 </script>
 
