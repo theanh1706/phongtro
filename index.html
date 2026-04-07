@@ -2,220 +2,130 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0f172a">
-<link rel="apple-touch-icon" href="icon.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>QL Trọ PRO MAX</title>
+<title>QL Trọ VIP FULL</title>
 
 <style>
-:root{
-  --bg:#0f172a;
-  --card:#1e293b;
-  --content:#334155;
-  --input:#475569;
-  --text:#e2e8f0;
-  --sub:#94a3b8;
+body{font-family:-apple-system,system-ui;background:#0f172a;color:#fff;margin:0;padding:10px}
+h2{text-align:center}
 
-  --green:#22c55e;
-  --yellow:#f59e0b;
-  --gray:#64748b;
-}
+.top{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px}
+.box{background:#1e293b;border-radius:14px;padding:12px;text-align:center}
+.box div:first-child{font-size:18px;font-weight:bold}
 
-body{font-family:system-ui;background:var(--bg);color:var(--text);padding:12px;}
-h2{text-align:center;}
+.room{background:#1e293b;border-radius:16px;margin-bottom:10px;overflow:hidden}
+.header{display:flex;justify-content:space-between;padding:14px;font-size:17px;cursor:pointer}
+.header.done{background:#14532d}
+.header.unpaid{background:#78350f}
+.header.late{background:#7f1d1d}
 
-select{width:100%;padding:12px;border-radius:12px;border:none;background:var(--card);color:#fff;margin-bottom:12px;}
+.content{max-height:0;overflow:hidden;transition:.3s;background:#334155}
+.room.open .content{max-height:1000px;padding:12px}
 
-.top{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
-.box{background:var(--card);border-radius:16px;padding:14px;text-align:center;}
+label{display:block;margin-top:6px;font-size:13px}
+input{width:100%;padding:14px;font-size:16px;border:none;border-radius:10px;margin-top:4px}
 
-.room{background:var(--card);border-radius:18px;margin-bottom:12px;overflow:hidden;}
-
-.header{display:flex;justify-content:space-between;padding:14px;cursor:pointer;}
-
-.header.done{background:rgba(34,197,94,0.15);}
-.header.unpaid{background:rgba(245,158,11,0.15);}
-.header.empty{background:rgba(100,116,139,0.15);}
-
-.content{max-height:0;overflow:hidden;transition:0.3s;background:var(--content);}
-.room.open .content{max-height:800px;padding:12px;}
-
-input{width:80px;padding:10px;margin:5px;border-radius:10px;border:none;color:#fff;}
-.name{width:150px;background:var(--input);}
-.electric{background:#78350f;}
-.water{background:#0c4a6e;}
-.money{background:#312e81;}
-.debtold{background:#7f1d1d;}
-.deposit{background:#065f46;}
-.dueday{background:#d97706;}
-
-button{width:100%;margin-top:6px;padding:12px;border:none;border-radius:12px;font-weight:600;color:#fff;}
-.calc{background:#16a34a;}
-.paid{background:#2563eb;}
-.fullpaid{background:#22c55e;}
-.print{background:#9333ea;}
-.clear{background:#dc2626;}
-
-.status{font-size:12px;margin-top:4px;font-weight:600;}
-.done{color:#4ade80;}
-.unpaid{color:#fbbf24;}
-.empty{color:#94a3b8;}
+button{width:100%;padding:14px;margin-top:8px;border:none;border-radius:10px;color:#fff}
+.calc{background:#16a34a}
+.paid{background:#2563eb}
+.fullpaid{background:#22c55e}
+.print{background:#9333ea}
+.clear{background:#dc2626}
 </style>
 </head>
 
 <body>
 
-<h2>🏠 SÓI GHẺ</h2>
-
-<select id="month"></select>
+<h2>🏠 QL TRỌ VIP FULL</h2>
 
 <div class="top">
-  <div class="box">
-    <div id="sumBox">0đ</div>
-    <div>Tổng tháng</div>
-  </div>
-  <div class="box">
-    <div id="unpaidBox">0</div>
-    <div>Chưa thu</div>
-  </div>
+  <div class="box"><div id="sumBox">0đ</div><div>Tổng</div></div>
+  <div class="box"><div id="unpaidBox">0</div><div>Chưa thu</div></div>
+  <div class="box"><div id="realBox">0đ</div><div>Đã thu</div></div>
 </div>
 
 <div id="list"></div>
 
 <script>
-let m = localStorage.getItem("m") || new Date().getMonth()+1;
 let data = JSON.parse(localStorage.getItem("tro")||"{}");
+let m = new Date().getMonth()+1;
 let openRoom = null;
-
-const monthEl = document.getElementById("month");
+const TOTAL = 8;
 
 function save(){
   localStorage.setItem("tro",JSON.stringify(data));
-  localStorage.setItem("m",m);
 }
-
-function initMonth(){
-  let h="";
-  for(let i=1;i<=12;i++){
-    h+=`<option value="${i}" ${i==m?"selected":""}>Tháng ${i}</option>`;
-  }
-  monthEl.innerHTML=h;
-}
-
-monthEl.onchange = ()=>{m=monthEl.value;save();render();};
 
 function getRoom(i){
   if(!data[m]) data[m]={};
   return data[m][i]||{};
 }
 
-function getPrev(i){
-  for(let k=m-1;k>=1;k--){
-    if(data[k] && data[k][i] && data[k][i].next_e){
-      return data[k][i];
-    }
-  }
-  return {};
-}
-
-function auto(i){
-  let r=getRoom(i),p=getPrev(i);
-  if(!r.e_old && p.next_e) r.e_old=p.next_e;
-  if(!r.w_old && p.next_w) r.w_old=p.next_w;
-  data[m][i]=r;
-}
-
-function toggleRoom(i, el){
-  if(el.classList.contains("open")){
-    el.classList.remove("open");
-    openRoom = null;
-  }else{
-    openRoom = i;
-    render();
-  }
+function toggle(i){
+  openRoom = openRoom==i?null:i;
+  render();
 }
 
 function render(){
-  let html="";
-  let totalMoney=0;
-  let unpaidCount=0;
+  let html="",sum=0,unpaid=0,real=0;
+  let today=new Date().getDate();
 
-  for(let i=1;i<=7;i++){
-    auto(i);
+  for(let i=1;i<=TOTAL;i++){
     let r=getRoom(i);
-    let p=getPrev(i);
+    let total=r.total||0;
+    let debt=total+(r.oldDebt||0)-(r.paid||0);
 
-    let oldE = p.next_e ?? r.e_old ?? '';
-    let oldW = p.next_w ?? r.w_old ?? '';
+    sum+=total;
+    real+=(r.paid||0);
+    if(debt>0) unpaid++;
 
-    let paid = r.paid||'';
-    let oldDebt = r.oldDebt||'';
-    let deposit = r.deposit||'';
-    let totalDebt = r.total ? (r.total + (r.oldDebt||0) - (r.paid||0)) : 0;
-
-    if(r.total) totalMoney+=r.total;
-    if(totalDebt>0) unpaidCount++;
-
-    let statusText="CHƯA TÍNH",statusClass="empty";
-    if(r.total){
-      if(totalDebt<=0){statusText="ĐÃ THU";statusClass="done";}
-      else{statusText="CÒN NỢ";statusClass="unpaid";}
-    }
+    let cls="unpaid";
+    if(debt<=0 && total>0) cls="done";
+    if(r.due && today>r.due) cls="late";
 
     html+=`
     <div class="room ${openRoom==i?'open':''}">
-      <div class="header ${statusClass}" onclick="toggleRoom(${i}, this.parentElement)">
-        <div>
-          <div>Phòng ${i} - ${r.name||""}</div>
-          <div style="font-size:12px;color:#94a3b8;">⚡ ${oldE} | 🚿 ${oldW}</div>
-          <div class="status ${statusClass}">${statusText}</div>
-        </div>
-
-        <div style="font-weight:700;">
-          ${r.total? r.total.toLocaleString()+"đ":"--"}
-        </div>
+      <div class="header ${cls}" onclick="toggle(${i})">
+        <div>Phòng ${i} - ${r.name||""}</div>
+        <div>${total?total.toLocaleString()+"đ":"--"}</div>
       </div>
 
       <div class="content">
-        <input class="name" value="${r.name||""}" onchange="setName(${i},this.value)" placeholder="Tên khách"><br>
 
-        ⚡ <input type="number" class="electric" id="eo${i}" value="${r.e_old||''}" placeholder="Điện cũ" title="Điện cũ">
-        <input type="number" class="electric" id="en${i}" value="${r.next_e||''}" placeholder="Điện mới" title="Điện mới"><br>
+        <label>👤 Tên khách</label>
+        <input value="${r.name||""}" onchange="setName(${i},this.value)">
 
-        🚿 <input type="number" class="water" id="wo${i}" value="${r.w_old||''}" placeholder="Nước cũ" title="Nước cũ">
-        <input type="number" class="water" id="wn${i}" value="${r.next_w||''}" placeholder="Nước mới" title="Nước mới"><br>
+        <label>⚡ Điện</label>
+        <input id="eo${i}" placeholder="Điện cũ" value="${r.e_old||''}">
+        <input id="en${i}" placeholder="Điện mới" value="${r.next_e||''}">
 
-        💰 <input type="number" class="money" id="paid${i}" value="${r.paid||''}" placeholder="Đã trả" title="Số tiền đã trả">
-        🔥 <input type="number" class="debtold" id="oldDebt${i}" value="${r.oldDebt||''}" placeholder="Nợ cũ" title="Nợ cũ">
-        🏦 <input type="number" class="deposit" id="deposit${i}" value="${r.deposit||''}" placeholder="Tiền cọc" title="Tiền cọc">
-        📅 <input type="number" class="dueday" id="due${i}" value="${r.due||''}" placeholder="Ngày thu" title="Ngày thu"><br>
+        <label>🚿 Nước</label>
+        <input id="wo${i}" placeholder="Nước cũ" value="${r.w_old||''}">
+        <input id="wn${i}" placeholder="Nước mới" value="${r.next_w||''}">
 
-        <div style="margin-top:6px;">
-          ❗ Tổng nợ:
-          <b style="color:#f87171">
-            ${r.total ? (totalDebt>0 ? totalDebt.toLocaleString()+"đ" : "0đ") : "--"}
-          </b>
-        </div>
+        <label>💰 Thanh toán</label>
+        <input id="paid${i}" placeholder="Đã trả" value="${r.paid||''}">
+        <input id="oldDebt${i}" placeholder="Nợ cũ" value="${r.oldDebt||''}">
+        <input id="deposit${i}" placeholder="Tiền cọc" value="${r.deposit||''}">
+
+        <label>📅 Ngày thu</label>
+        <input id="due${i}" value="${r.due||''}" onchange="saveDue(${i},this.value)">
 
         <button class="calc" onclick="calc(${i})">TÍNH</button>
         <button class="paid" onclick="savePaid(${i})">LƯU TRẢ</button>
-        <button class="fullpaid" onclick="payFull(${i})">ĐÃ THU (FULL)</button>
+        <button class="fullpaid" onclick="payFull(${i})">FULL</button>
         <button class="print" onclick="bill(${i})">IN</button>
         <button class="clear" onclick="del(${i})">XÓA</button>
+
       </div>
-    </div>
-    `;
+    </div>`;
   }
 
-  document.getElementById("list").innerHTML = html;
-  document.getElementById("sumBox").innerText = totalMoney.toLocaleString()+"đ";
-  document.getElementById("unpaidBox").innerText = unpaidCount;
-
-  checkDuePerRoom();
+  document.getElementById("list").innerHTML=html;
+  document.getElementById("sumBox").innerText=sum.toLocaleString()+"đ";
+  document.getElementById("unpaidBox").innerText=unpaid;
+  document.getElementById("realBox").innerText=real.toLocaleString()+"đ";
 }
 
 function setName(i,v){
@@ -223,118 +133,86 @@ function setName(i,v){
   save();
 }
 
+function saveDue(i,v){
+  data[m][i]={...getRoom(i),due:+v};
+  save();
+}
+
 function calc(i){
   let r=getRoom(i);
 
-  let e_old=+document.getElementById("eo"+i).value||0;
-  let e_new=+document.getElementById("en"+i).value||0;
-  let w_old=+document.getElementById("wo"+i).value||0;
-  let w_new=+document.getElementById("wn"+i).value||0;
+  let eo=+document.getElementById("eo"+i).value||0;
+  let en=+document.getElementById("en"+i).value||0;
+  let wo=+document.getElementById("wo"+i).value||0;
+  let wn=+document.getElementById("wn"+i).value||0;
 
   let price=(i==7)?900000:1000000;
-  let total=price+(e_new-e_old)*5000+(w_new-w_old)*10000;
+  let total=price+(en-eo)*5000+(wn-wo)*10000;
 
-  data[m][i]={...r,e_old,w_old,next_e:e_new,next_w:w_new,total};
-  save();
-  render();
+  data[m][i]={...r,e_old:eo,next_e:en,w_old:wo,next_w:wn,total};
+  save(); render();
 }
 
 function savePaid(i){
-  let val = +document.getElementById("paid"+i).value||0;
-  let oldDebt = +document.getElementById("oldDebt"+i).value||0;
-  let deposit = +document.getElementById("deposit"+i).value||0;
-  let due = +document.getElementById("due"+i).value||0;
-
-  let r=getRoom(i);
-
-  data[m][i]={...r,paid:val,oldDebt:oldDebt,deposit:deposit,due:due};
-  save();
-  render();
+  data[m][i]={
+    ...getRoom(i),
+    paid:+document.getElementById("paid"+i).value||0,
+    oldDebt:+document.getElementById("oldDebt"+i).value||0,
+    deposit:+document.getElementById("deposit"+i).value||0
+  };
+  save(); render();
 }
 
 function payFull(i){
   let r=getRoom(i);
   if(!r.total) return;
-
   data[m][i]={...r,paid:r.total,oldDebt:0};
-  save();
-  render();
+  save(); render();
 }
 
 function del(i){
   delete data[m][i];
-  save();
-  render();
+  save(); render();
 }
 
+/* ✅ HÓA ĐƠN FIX CHUẨN */
 function bill(i){
-  let r = getRoom(i);
-  if(!r.total){ alert("Chưa tính tiền!"); return; }
+  let r=getRoom(i);
+  if(!r.total){alert("Chưa tính!");return;}
 
-  let e_old=r.e_old||0, e_new=r.next_e||0;
-  let w_old=r.w_old||0, w_new=r.next_w||0;
+  let eo=r.e_old||0,en=r.next_e||0;
+  let wo=r.w_old||0,wn=r.next_w||0;
 
-  let e_use=e_new-e_old, w_use=w_new-w_old;
-  let e_money=e_use*5000, w_money=w_use*10000;
+  let eu=en-eo,wu=wn-wo;
+  let em=eu*5000,wm=wu*10000;
+  let room=(i==7)?900000:1000000;
 
-  let roomPrice=(i==7)?900000:1000000;
-
-  let oldDebt=r.oldDebt||0;
-  let paid=r.paid||0;
-
-  let total=roomPrice+e_money+w_money;
-  let finalDebt=total+oldDebt-paid;
-
-  let html=`<html><head><title>Hóa đơn</title>
-  <style>body{font-family:Arial;padding:20px}h2{text-align:center}table{width:100%;border-collapse:collapse}td{padding:6px;border-bottom:1px solid #ccc}.r{text-align:right}.b{font-weight:bold}</style>
-  </head><body>
-  <h2>HÓA ĐƠN PHÒNG ${i}</h2>
-  <table>
-  <tr><td>Khách</td><td class="r">${r.name||""}</td></tr>
-  <tr><td>Điện cũ</td><td class="r">${e_old}</td></tr>
-  <tr><td>Điện mới</td><td class="r">${e_new}</td></tr>
-  <tr><td>Sử dụng</td><td class="r">${e_use}</td></tr>
-  <tr><td>Tiền điện</td><td class="r">${e_money.toLocaleString()}đ</td></tr>
-  <tr><td>Nước cũ</td><td class="r">${w_old}</td></tr>
-  <tr><td>Nước mới</td><td class="r">${w_new}</td></tr>
-  <tr><td>Sử dụng</td><td class="r">${w_use}</td></tr>
-  <tr><td>Tiền nước</td><td class="r">${w_money.toLocaleString()}đ</td></tr>
-  <tr><td>Tiền phòng</td><td class="r">${roomPrice.toLocaleString()}đ</td></tr>
-  <tr><td>Nợ cũ</td><td class="r">${oldDebt.toLocaleString()}đ</td></tr>
-  <tr><td>Đã trả</td><td class="r">${paid.toLocaleString()}đ</td></tr>
-  <tr class="b"><td>TỔNG PHẢI TRẢ</td><td class="r">${finalDebt.toLocaleString()}đ</td></tr>
-  </table></body></html>`;
+  let old=r.oldDebt||0,paid=r.paid||0;
+  let total=room+em+wm;
+  let final=total+old-paid;
 
   let w=window.open("");
+
+  let html = `
+  <html>
+  <body style="font-family:sans-serif;padding:20px">
+  <h2>HÓA ĐƠN PHÒNG ${i}</h2>
+  <p>Khách: ${r.name||""}</p>
+  <p>Điện: ${eo} → ${en} = ${em.toLocaleString()}đ</p>
+  <p>Nước: ${wo} → ${wn} = ${wm.toLocaleString()}đ</p>
+  <p>Tiền phòng: ${room.toLocaleString()}đ</p>
+  <p>Nợ cũ: ${old.toLocaleString()}đ</p>
+  <p>Đã trả: ${paid.toLocaleString()}đ</p>
+  <h3>TỔNG: ${final.toLocaleString()}đ</h3>
+  </body>
+  </html>
+  `;
+
   w.document.write(html);
   w.document.close();
   w.print();
 }
 
-// 🔔 Nhắc ngày thu tiền từng phòng
-if ("Notification" in window) {
-  Notification.requestPermission();
-}
-
-function checkDuePerRoom(){
-  let today = new Date().getDate();
-  for(let i=1;i<=7;i++){
-    let r = getRoom(i);
-    if(!r.due) continue;
-    if(today > r.due){
-      console.log("Phòng "+i+" đã quá ngày thu!");
-      alert(`⚠️ Phòng ${i} đã quá ngày thu tiền!`);
-      if(Notification.permission==="granted"){
-        new Notification("Nhắc thu tiền trọ",{
-          body:`Phòng ${i} đã quá ngày thu tiền!`,
-          icon:"icon.png"
-        });
-      }
-    }
-  }
-}
-
-initMonth();
 render();
 </script>
 
