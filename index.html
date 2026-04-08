@@ -174,28 +174,20 @@ function render(){
       </div>
       <div class="content">
       <div class="row">
-        <input value="${r.name||""}" placeholder="Tên" onchange="setName(${i},this.value)">
-        <input id="price${i}" value="${format(r.price)}" placeholder="Tiền phòng"
-               oninput="this.value=this.value.replace(/\\D/g,''); this.value=format(parse(this.value))">
-        <input id="deposit${i}" value="${format(r.deposit)}" placeholder="Cọc"
-               oninput="this.value=this.value.replace(/\\D/g,''); this.value=format(parse(this.value))">
+        <input type="text" value="${r.name||""}" placeholder="Tên" onchange="setName(${i},this.value)">
+        <input type="text" inputmode="numeric" pattern="[0-9]*" id="price${i}" value="${format(r.price)}" placeholder="Tiền phòng" oninput="this.value=format(parse(this.value))">
+        <input type="text" inputmode="numeric" pattern="[0-9]*" id="deposit${i}" value="${format(r.deposit)}" placeholder="Cọc" oninput="this.value=format(parse(this.value))">
       </div>
       <div class="row">
-        <input id="eo${i}" value="${format(r.e_old)}" placeholder="Điện cũ"
-               oninput="this.value=this.value.replace(/\\D/g,''); this.value=format(parse(this.value))">
-        <input id="en${i}" value="${format(r.next_e)}" placeholder="Điện mới"
-               oninput="this.value=this.value.replace(/\\D/g,''); this.value=format(parse(this.value))">
+        <input type="text" inputmode="numeric" pattern="[0-9]*" id="eo${i}" value="${format(r.e_old)}" placeholder="Điện cũ" oninput="this.value=format(parse(this.value))">
+        <input type="text" inputmode="numeric" pattern="[0-9]*" id="en${i}" value="${format(r.next_e)}" placeholder="Điện mới" oninput="this.value=format(parse(this.value))">
       </div>
       <div class="row">
-        <input id="wo${i}" value="${format(r.w_old)}" placeholder="Nước cũ"
-               oninput="this.value=this.value.replace(/\\D/g,''); this.value=format(parse(this.value))">
-        <input id="wn${i}" value="${format(r.next_w)}" placeholder="Nước mới"
-               oninput="this.value=this.value.replace(/\\D/g,''); this.value=format(parse(this.value))">
+        <input type="text" inputmode="numeric" pattern="[0-9]*" id="wo${i}" value="${format(r.w_old)}" placeholder="Nước cũ" oninput="this.value=format(parse(this.value))">
+        <input type="text" inputmode="numeric" pattern="[0-9]*" id="wn${i}" value="${format(r.next_w)}" placeholder="Nước mới" oninput="this.value=format(parse(this.value))">
       </div>
-      <input id="paid${i}" value="${format(r.paid||0)}" placeholder="Đã trả"
-             oninput="this.value=this.value.replace(/\\D/g,''); this.value=format(parse(this.value))">
-      <input id="oldDebt${i}" value="${format(r.oldDebt||0)}" placeholder="Nợ cũ"
-             oninput="this.value=this.value.replace(/\\D/g,''); this.value=format(parse(this.value))">
+      <input type="text" inputmode="numeric" pattern="[0-9]*" id="paid${i}" value="${format(r.paid||0)}" placeholder="Đã trả" oninput="this.value=format(parse(this.value))">
+      <input type="text" inputmode="numeric" pattern="[0-9]*" id="oldDebt${i}" value="${format(r.oldDebt||0)}" placeholder="Nợ cũ" oninput="this.value=format(parse(this.value))">
       <div class="debt">Còn nợ: ${final>0?format(final)+"đ":"0đ"}</div>
       <button class="calc" onclick="calc(${i})">TÍNH</button>
       <button class="paid" onclick="savePaid(${i})">LƯU</button>
@@ -259,8 +251,20 @@ function payFull(i){
 function clearRoom(i){
   let r=getRoom(i);
   let key=monthKey(m,y);
-  data[key][i]={name:r.name, price:r.price, deposit:r.deposit, e_old:r.e_old, w_old:r.w_old};
-  save(); render();
+  data[key][i]={
+    name:"",
+    price:0,
+    deposit:0,
+    e_old:r.e_old||0,
+    w_old:r.w_old||0,
+    next_e:0,
+    next_w:0,
+    total:0,
+    paid:0,
+    oldDebt:0
+  };
+  save(); 
+  render();
 }
 
 /* VIEW BILL */
