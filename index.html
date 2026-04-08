@@ -46,7 +46,9 @@ select{width:48%;padding:8px;border-radius:10px;border:none;margin-bottom:12px;f
 <body>
 <div class="container">
 <h2>🏠 QL TRỌ PRO MAX</h2>
-
+<div class="row">
+  <button class="clear" onclick="resetAll()">RESET ALL</button>
+</div>
 <!-- CHỌN THÁNG/NĂM -->
 <div class="row">
   <select id="monthSelect" onchange="changeMonthYear()"></select>
@@ -247,26 +249,33 @@ function payFull(i){
   save(); render();
 }
 
-/* CLEAR ROOM */
+/* CLEAR ROOM: giữ điện cũ/mới, nước cũ/mới, xóa toàn bộ còn lại */
 function clearRoom(i){
-  let r=getRoom(i);
-  let key=monthKey(m,y);
-  data[key][i]={
-    name:"",
-    price:0,
-    deposit:0,
-    e_old:r.e_old||0,
-    w_old:r.w_old||0,
-    next_e:0,
-    next_w:0,
-    total:0,
-    paid:0,
-    oldDebt:0
+  let r = getRoom(i);
+  let key = monthKey(m,y);
+
+  // Reset dữ liệu chính
+  data[key][i] = {
+    name: "",              // xóa tên
+    price: 0,              // xóa tiền phòng
+    deposit: 0,            // xóa tiền cọc
+    e_old: r.e_old || 0,   // giữ điện cũ
+    next_e: r.next_e || 0, // giữ điện mới
+    w_old: r.w_old || 0,   // giữ nước cũ
+    next_w: r.next_w || 0, // giữ nước mới
+    total: 0,              // xóa tổng
+    paid: 0,               // xóa đã trả
+    oldDebt: 0             // xóa nợ cũ
   };
-  save(); 
+
+  // Reset luôn giá trị mặc định để render không điền lại giá trị cũ
+  roomDefault[i] = 0;
+  roomDepositDefault[i] = 0;
+  roomNameDefault[i] = "";
+
+  save();
   render();
 }
-
 /* VIEW BILL */
 function viewBill(i){
   let r=getRoom(i);
@@ -297,6 +306,30 @@ function closeBill(){ document.getElementById("billModal").style.display="none";
 
 autoResetMonth();
 render();
+/* RESET ALL: xóa toàn bộ dữ liệu */
+function resetAll(){
+  if(!confirm("Bạn có chắc muốn xóa toàn bộ dữ liệu không?")) return;
+
+  // Xóa tất cả dữ liệu
+  data = {};
+  roomDefault = {};
+  roomNameDefault = {};
+  roomDepositDefault = {};
+  lastMonthKey = null;
+
+  // Reset tháng/năm về hiện tại
+  let today = new Date();
+  m = today.getMonth()+1;
+  y = today.getFullYear();
+
+  localStorage.clear(); // xóa toàn bộ localStorage
+
+  // Gán lại select tháng/năm
+  document.getElementById("monthSelect").value = m;
+  document.getElementById("yearSelect").value = y;
+
+  render();
+}
 </script>
 </body>
 </html>
